@@ -5,14 +5,16 @@ session_start();
 		require 'dbConnect.php';
 		
 		$sql = "SELECT ";
-		$sql .= "primary_id, ";
+		$sql .= "event_id, ";
 		$sql .= "event_name, ";
 		$sql .= "event_description, ";
 		$sql .= "event_presenter, ";
 		$sql .= "event_date, ";
-		$sql .= "event_time, ";
+		$sql .= "event_time ";
+		
 		$sql .= "FROM wdv341_event";
-		$sql .= "WHERE event_name = 'eventOne'";
+		$sql .= "WHERE event_id = 2";
+		
 		$stmt = $conn->prepare($sql);
 		$stmt->execute();
 		
