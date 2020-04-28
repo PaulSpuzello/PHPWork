@@ -3,23 +3,11 @@ session_start();
 	try {
 		
 		require 'dbConnect.php';
-		
-        $sql = "SELECT ";
-		$sql .= "event_id, ";       
-		$sql .= "event_name, ";
-		$sql .= "event_description, ";
-		$sql .= "event_presenter, ";
-		$sql .= "DATE_FORMAT(event_date, '%c-%d-%Y')";
-        $sql .= "event_date, ";
-		
-		$sql .= "event_time ";       
-		
-		$sql .= "FROM wdv341_event_two ";
-		$sql .= "ORDER BY event_id DESC ";
-		echo("Before prepare and execute");
+
+		$sql = "SELECT event_id, event_name, event_description, event_presenter, event_date, event_time FROM wdv341_event ORDER BY event_id DESC";
+	
 		$stmt = $conn->prepare($sql);
 		$stmt->execute();
-		echo("After prepare and execute");
 		$stmt->setFetchMode(PDO::FETCH_ASSOC);
 		
 
