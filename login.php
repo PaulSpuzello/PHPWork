@@ -1,65 +1,55 @@
 <?php 
 session_cache_limiter('none');			//This prevents a Chrome error when using the back button to return to this page.
 session_start();
-	if ($_SESSION['validUser'] == "yes")				//is this already a valid user?
+$_SESSION['validUser'] = "no";
+
+	if ($_SESSION['validUser'] == "yes")				
 	{
-		//User is already signed on.  Skip the rest.
-		$message = "Welcome Back! $username";	//Create greeting for VIEW area		
+		$message = "Welcome Back! ";	
 	}
 	else
 	{
-		if (isset($_POST['submitLogin']) )			//Was this page called from a submitted form?
+		if (isset($_POST['submitLogin']) )
 		{
-			$inUsername = $_POST['loginUsername'];	//pull the username from the form
-			$inPassword = $_POST['loginPassword'];	//pull the password from the form
+			$inUsername = $_POST['loginUsername'];
+			$inPassword = $_POST['loginPassword'];
 			
-			require 'dbConnect.php';				//Connect to the database
+			include 'dbConnect.php';			
+			
+			$sql = "SELECT event_user_name, event_user_password FROM event_user WHERE event_user_name = :userName AND event_user_password = :password";
+			
+			$stmt = $conn->prepare($sql);
+			
+			$stmt->bindParam(':userName', $inUsername);
+			$stmt->bindParam(':password', $inPassword);
+			
+			$stmt->execute();
+			
+			$row = $stmt->rowCount();
 
-			$sql = "SELECT event_user_name,event_user_password FROM event_user WHERE event_user_name = ? AND event_user_password = ?";				
+			//echo "<h2>username: $inUsername</h2>";
+			//echo "<h2>password: $inPassword</h2>";
+
+			//echo "<h2>Number of rows affected " . $conn->affected_rows . "</h2>";		
+			//echo "<h2>Number of rows found " . $row . "</h2>";				
 			
-			$query = $connection->prepare($sql) or die("<p>SQL String: $sql</p>");	//prepare the query
 			
-			$query->bind_param("ss",$inUsername,$inPassword);	//bind parameters to prepared statement
 			
-			$query->execute() or die("<p>Execution </p>" );
-			
-			$query->bind_result($userName,$passWord);
-			
-			$query->store_result();
-			
-			$query->fetch();	
-			
-			echo "<h2>userName: $userName</h2>";
-			echo "<h2>password: $passWord</h2>";
-		
-			//echo "<h2>Number of rows affected " . $connection->affected_rows . "</h2>";	//best for Update,Insert,Delete			
-			//echo "<h2>Number of rows found " . $query->num_rows . "</h2>";				//best for SELECT
-			
-			if ($query->num_rows == 1 )		//If this is a valid user there should be ONE row only
+			if ($row == 1)	
 			{
-				$_SESSION['validUser'] = "yes";				//this is a valid user so set your SESSION variable
-				$message = "Welcome Back! $userName";
-				//Valid User can do the following things:
+				$_SESSION['validUser'] = "yes";				
+				$message = "Welcome Back! $inUsername";
+				echo($message);
 			}
 			else
 			{
-				//error in processing login.  Logon Not Found...
 				$_SESSION['validUser'] = "no";					
 				$message = "Sorry, there was a problem with your username or password. Please try again.";
-			}			
-			
-			$query->close();
-			$connection->close();
-			
-		}//end if submitted
-		else
-		{
-			//user needs to see form
-		}//end else submitted
-		
-	}//end else valid user
-	
-//turn off PHP and turn on HTML
+				echo($message);
+			}	 	
+		}
+
+	}
 ?>
 <!DOCTYPE html>
 <html>
@@ -72,20 +62,19 @@ session_start();
 
 <h2>Login Page</h2>
 
-<h2><?php echo $message?></h2>
+
 
 <?php
-	if ($_SESSION['validUser'] == "yes")	//This is a valid user.  Show them the Administrator Page
+	if ($_SESSION['validUser'] == "yes")
 	{
-		
-//turn off PHP and turn on HTML
 ?>
-		<h3>Event Administrator Options</h3>
-        <p><a href="formatEvents.php">View Events</a></p>
-        					
+				<h3>Event Administrator Options</h3>
+				<p><a href="formatEvents.php">View Events</a></p>
+				<p><a href="insertEvents.php">Add Events</a></p>
+				<p><a href="logout.php">Logout</a></p>
 <?php
 	}
-	else									//The user needs to log in.  Display the Login Form
+	else if ($_SESSION['validUser'] == "no")
 	{
 ?>
 			<h2>Please login to the Administrator System</h2>
@@ -96,13 +85,8 @@ session_start();
 				  <input name="" type="reset" />&nbsp;</p>
                 </form>
                 
-<?php //turn off HTML and turn on PHP
-	}//end of checking for a valid user
-			
-//turn off PHP and begin HTML			
+<?php
+	}	
 ?>
-
-<p>Return to <a href='#'>www.presentationstogo.com</a></p>
-
 </body>
 </html>
